@@ -1,0 +1,98 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "Add Host" : {
+
+    },
+    "Back" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Destination Host:" : {
+
+    },
+    "Destination Port:" : {
+
+    },
+    "Enter hostname or IP" : {
+
+    },
+    "Enter password" : {
+
+    },
+    "Enter port" : {
+
+    },
+    "Enter tag" : {
+
+    },
+    "Enter user" : {
+
+    },
+    "Hello, World!" : {
+
+    },
+    "Hostname:" : {
+
+    },
+    "hosts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hosts"
+          }
+        }
+      }
+    },
+    "Hosts" : {
+
+    },
+    "Key:" : {
+
+    },
+    "keys" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keys"
+          }
+        }
+      }
+    },
+    "Keys" : {
+
+    },
+    "New hosts are synchronized to all devices." : {
+
+    },
+    "Password:" : {
+
+    },
+    "Port:" : {
+
+    },
+    "Save" : {
+
+    },
+    "settings" : {
+
+    },
+    "Settings" : {
+
+    },
+    "Tags" : {
+
+    },
+    "User:" : {
+
+    }
+  },
+  "version" : "1.0"
+}
