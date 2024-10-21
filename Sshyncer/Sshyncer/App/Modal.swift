@@ -8,5 +8,6 @@
 enum Modal: String {
     case addHost
     case addKey
+    case addTunnel
     case none
 }

@@ -15,8 +15,8 @@ import UIKit
 import AppKit
 #endif
 
-struct AddHostView: View {
-    @StateObject private var viewModel = AddHostViewModel()
+struct HostAddView: View {
+    @ObservedObject private var viewModel = HostAddViewModel()
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -31,10 +31,10 @@ struct AddHostView: View {
             
             Section {
                 TextField("Hostname:", text: $viewModel.hostname, prompt: Text("Enter hostname or IP"))
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .textFieldStyle(.roundedBorder)
                 
                 TextField("Port:", value: $viewModel.port, formatter: NumberFormatter(), prompt: Text("Enter port"))
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .textFieldStyle(.roundedBorder)
                     #if !os(macOS)
                     .keyboardType(.numberPad)
                     #endif
@@ -45,10 +45,10 @@ struct AddHostView: View {
             
             Section {
                 TextField("User:", text: $viewModel.user, prompt: Text("Enter user"))
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .textFieldStyle(.roundedBorder)
                 
                 SecureField("Password:", text: $viewModel.password, prompt: Text("Enter password"))
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .textFieldStyle(.roundedBorder)
                     
                 Picker("Key:", selection: $viewModel.selectedKey) {
                     ForEach(viewModel.availableKeys, id: \.id) {
@@ -65,6 +65,7 @@ struct AddHostView: View {
                 VStack {
                     HStack {
                         TextField("Enter tag", text: $viewModel.newTag)
+                            .textFieldStyle(.roundedBorder)
                             .onSubmit {
                                 viewModel.addTag()
                             }
@@ -87,12 +88,11 @@ struct AddHostView: View {
             
             Section {
                 HStack {
+                    Spacer()
+                    
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.red)
-                    
-                    Spacer()
                     
                     Button("Save") {
                         Task {
@@ -100,7 +100,8 @@ struct AddHostView: View {
                         }
                         dismiss()
                     }
-                    .foregroundColor(.blue)
+                    .buttonStyle(viewModel.saveButtonStyle)
+                    .disabled(!viewModel.isValid)
                 }
             }
         }
@@ -135,7 +136,7 @@ public struct WrapView: View {
 }
 
 struct TagItemView: View {
-    @EnvironmentObject var viewModel: AddHostViewModel
+    @EnvironmentObject var viewModel: HostAddViewModel
     
     let tag: String
     
@@ -207,5 +208,5 @@ struct FlexibleView<Data: Collection, Content: View>: View where Data.Element: H
 }
 
 #Preview {
-    AddHostView()
+    HostAddView()
 }

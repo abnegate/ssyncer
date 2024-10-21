@@ -7,13 +7,24 @@
 
 import SwiftUI
 
-struct HostsView: View {
+struct HostListView: View {
+    @StateObject var viewModel = HostListViewModel()
+    
     var body: some View {
-        Text(verbatim: /*@START_MENU_TOKEN@*/"Placeholder"/*@END_MENU_TOKEN@*/)
-            .navigationTitle("Hosts")
+        GeometryReader { geometry in
+            ScrollView {
+                LazyVGrid(columns: viewModel.columns(for: geometry.size.width), spacing: 12) {
+                    ForEach(viewModel.hosts, id: \.hostname) { host in
+                        HostItemView(viewModel: viewModel, host: host)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                .padding()
+            }
+        }
     }
 }
 
 #Preview {
-    HostsView()
+    HostListView()
 }

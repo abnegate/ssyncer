@@ -13,15 +13,19 @@ struct App: SwiftUI.App {
         WindowGroup {
             ContentView()
         }
+        
+        Settings {
+            SettingsView()
+        }
     }
 }
 
 struct ContentView: View {
-    @ObservedObject var viewModel = AppViewModel()
+    @StateObject var viewModel = AppViewModel()
     
     var body: some View {
         SshyncerNavigationView(viewModel: viewModel)
-            .environmentObject(Appwrite())
+            .registerOAuthHandler()
     }
 }
 
@@ -29,26 +33,29 @@ struct ContentView: View {
 struct SshyncerNavigationView: View {
     @ObservedObject var viewModel: AppViewModel
     
+    @State var selectedTab = Screen.hosts
+    @State var showingModal = Modal.none
+    
     var body: some View {
         NavigationSplitView {
-            List(selection: $viewModel.selectedTab) {
-                NavigationLink(value: Screen.hosts.rawValue) {
+            List(selection: $selectedTab) {
+                NavigationLink(value: Screen.hosts) {
                     Label("Hosts", systemImage: "server.rack")
                 }
-                NavigationLink(value: Screen.keys.rawValue) {
+                NavigationLink(value: Screen.keys) {
                     Label("Keys", systemImage: "key")
                 }
-                NavigationLink(value: Screen.settings.rawValue) {
-                    Label("Settings", systemImage: "gear")
+                NavigationLink(value: Screen.tunnels) {
+                    Label("Tunnels", systemImage: "tram.fill.tunnel")
                 }
             }
             .listStyle(SidebarListStyle())
         } detail: {
             VStack {
-                let path = getNavigationPath(for: viewModel.selectedTab)
+                let path = getNavigationPath(for: selectedTab)
                 
                 if !path.isEmpty {
-                    Button(action: { popNavigationStack(for: viewModel.selectedTab) }) {
+                    Button(action: { popNavigationStack(for: selectedTab) }) {
                         HStack {
                             Image(systemName: "chevron.left")
                             Text("Back")
@@ -57,25 +64,25 @@ struct SshyncerNavigationView: View {
                     .padding()
                 }
                 
-                switch viewModel.selectedTab {
+                switch selectedTab {
                 case .hosts:
                     NavigationStack(path: $viewModel.hostsNavigationPath) {
-                        HostsView()
+                        HostListView()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .toolbar {
                                 ToolbarItem(placement: .primaryAction) {
                                     Button(action: {
-                                        viewModel.showingModal = .addHost
+                                        showingModal = .addHost
                                     }) {
                                         Image(systemName: "plus")
                                     }
                                 }
                             }
                             .sheet(isPresented: Binding(
-                                get: { viewModel.showingModal == .addHost },
-                                set: { if !$0 { viewModel.showingModal = .none } }
+                                get: { showingModal == .addHost },
+                                set: { if !$0 { showingModal = .none } }
                             )) {
-                                AddHostView()
+                                HostAddView()
                             }
                     }
                 case .keys:
@@ -85,23 +92,38 @@ struct SshyncerNavigationView: View {
                             .toolbar {
                                 ToolbarItem(placement: .primaryAction) {
                                     Button(action: {
-                                        viewModel.showingModal = .addKey
+                                        showingModal = .addKey
                                     }) {
                                         Image(systemName: "plus")
                                     }
                                 }
                             }
                             .sheet(isPresented: Binding(
-                                get: { viewModel.showingModal == .addKey },
-                                set: { if !$0 { viewModel.showingModal = .none } }
+                                get: { showingModal == .addKey },
+                                set: { if !$0 { showingModal = .none } }
                             )) {
                                 AddKeyView()
                             }
                     }
-                case .settings:
-                    NavigationStack(path: $viewModel.settingsNavigationPath) {
-                        SettingsView()
+                case .tunnels:
+                    NavigationStack(path: $viewModel.tunnelsNavigationPath) {
+                        TunnelListView()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .toolbar {
+                                ToolbarItem(placement: .primaryAction) {
+                                    Button(action: {
+                                        showingModal = .addTunnel
+                                    }) {
+                                        Image(systemName: "plus")
+                                    }
+                                }
+                            }
+                            .sheet(isPresented: Binding(
+                                get: { showingModal == .addTunnel },
+                                set: { if !$0 { showingModal = .none } }
+                            )) {
+                                TunnelAddView()
+                            }
                     }
                 }
             }
@@ -111,15 +133,11 @@ struct SshyncerNavigationView: View {
 }
 #else
 struct SshyncerNavigationView: View {
-    @Binding var selectedTab: Screen
-    @Binding var showingModal: Modal
-    @Binding var hostsNavigationPath: NavigationPath
-    @Binding var keysNavigationPath: NavigationPath
-    @Binding var settingsNavigationPath: NavigationPath
+    @ObservedObject var viewModel: AppViewModel
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            NavigationStack(path: $hostsNavigationPath) {
+        TabView(selection: $viewModel.selectedTab) {
+            NavigationStack(path: $viewModel.hostsNavigationPath) {
                 HostsView()
                     .toolbar {
                         ToolbarItem(placement: .navigationBarTrailing) {
@@ -134,7 +152,7 @@ struct SshyncerNavigationView: View {
             }
             .tag(Screen.hosts.rawValue)
             
-            NavigationStack(path: $keysNavigationPath) {
+            NavigationStack(path: $viewModel.keysNavigationPath) {
                 KeysView()
                     .toolbar {
                         ToolbarItem(placement: .navigationBarTrailing) {
@@ -149,7 +167,7 @@ struct SshyncerNavigationView: View {
             }
             .tag(Screen.keys.rawValue)
             
-            NavigationStack(path: $settingsNavigationPath) {
+            NavigationStack(path: $viewModel.settingsNavigationPath) {
                 SettingsView()
             }
             .tabItem {
@@ -169,8 +187,8 @@ extension SshyncerNavigationView {
             return viewModel.hostsNavigationPath
         case .keys:
             return viewModel.keysNavigationPath
-        case .settings:
-            return viewModel.settingsNavigationPath
+        case .tunnels:
+            return viewModel.tunnelsNavigationPath
         }
     }
     
@@ -185,9 +203,9 @@ extension SshyncerNavigationView {
             if !viewModel.keysNavigationPath.isEmpty {
                 viewModel.keysNavigationPath.removeLast()
             }
-        case .settings:
-            if !viewModel.settingsNavigationPath.isEmpty {
-                viewModel.settingsNavigationPath.removeLast()
+        case .tunnels:
+            if !viewModel.tunnelsNavigationPath.isEmpty {
+                viewModel.tunnelsNavigationPath.removeLast()
             }
         }
     }

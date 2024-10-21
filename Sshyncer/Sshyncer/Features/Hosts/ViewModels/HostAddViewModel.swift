@@ -8,8 +8,10 @@
 import SwiftUI
 import Appwrite
 
-class AddHostViewModel: ViewModel {
-    private var appwrite = Appwrite()
+
+
+class HostAddViewModel: ViewModel {
+    private var appwrite = Appwrite.shared
     
     @Published var hostname: String = ""
     @Published var port: Int = 22
@@ -20,7 +22,20 @@ class AddHostViewModel: ViewModel {
     @Published var tags: [String] = []
     @Published var newTag: String = ""
 
-    var availableKeys: [Document<Key>] = []
+    @Published var availableKeys: [Document<Key>] = []
+    
+    var isValid: Bool {
+        return hostname.isValidHostnameOrIP()
+            && port.isValidPortNumber()
+            && !user.isEmpty
+            && (!password.isEmpty || selectedKey != nil)
+    }
+    
+    var saveButtonStyle: AnyButtonStyle {
+        isValid
+            ? AnyButtonStyle(BorderedProminentButtonStyle())
+            : AnyButtonStyle(DefaultButtonStyle())
+    }
     
     func addTag() {
         let trimmed = newTag.trimmingCharacters(in: .whitespaces)

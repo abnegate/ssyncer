@@ -8,9 +8,33 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @StateObject var viewModel = SettingsViewModel()
+    
+    @State private var selectedTab: String = "General" // Initial selected tab
+    
     var body: some View {
-        Text(verbatim: "Placeholder")
-            .navigationTitle("Settings")
+        VStack {
+            TabView(selection: $selectedTab) {
+                AccountSettingsView()
+                    .tabItem {
+                        Label("Account", systemImage: "person.crop.circle")
+                    }
+                    .tag("Account")
+                
+                IntegrationsSettingsView()
+                    .tabItem {
+                        Label("Integrations", systemImage: "puzzlepiece.extension.fill")
+                    }
+                    .tag("Integrations")
+                
+                UpdateSettingsView()
+                    .tabItem {
+                        Label("Updates", systemImage: "arrow.clockwise")
+                    }
+                    .tag("Updates")
+            }
+            .frame(minWidth: 600, minHeight: 400)
+        }
     }
 }
 

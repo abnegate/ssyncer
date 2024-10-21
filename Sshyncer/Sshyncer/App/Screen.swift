@@ -8,5 +8,5 @@
 enum Screen: String {
     case hosts = "hosts"
     case keys = "keys"
-    case settings = "settings"
+    case tunnels = "tunnels"
 }

@@ -8,27 +8,18 @@
 import SwiftUI
 
 class AppViewModel : ViewModel {
-    private var appwrite: Appwrite
-    
-    @Published var selectedTab: Screen
-    @Published var showingModal: Modal
-    @Published var hostsNavigationPath: NavigationPath
-    @Published var keysNavigationPath: NavigationPath
-    @Published var settingsNavigationPath: NavigationPath
+    @Published var appwrite = Appwrite.shared
+    @Published var hostsNavigationPath = NavigationPath()
+    @Published var keysNavigationPath = NavigationPath()
+    @Published var tunnelsNavigationPath = NavigationPath()
     
     override init() {
-        appwrite = .init()
-        selectedTab = .hosts
-        showingModal = .none
-        hostsNavigationPath = .init()
-        keysNavigationPath = .init()
-        settingsNavigationPath = .init()
-        
         super.init()
         
         Task {
-            // TODO: Check if one exists here first
-            try await appwrite.createAnonymousSession()
+            if !(await appwrite.isLoggedIn()) {
+                try? await appwrite.createAnonymousSession()
+            }
         }
     }
 }

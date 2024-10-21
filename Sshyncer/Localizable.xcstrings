@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "Account" : {
+
+    },
     "Add Host" : {
 
     },
@@ -53,6 +56,9 @@
     "Hosts" : {
 
     },
+    "Integrations" : {
+
+    },
     "Key:" : {
 
     },
@@ -75,19 +81,31 @@
     "Password:" : {
 
     },
+    "Placeholder" : {
+
+    },
     "Port:" : {
 
     },
     "Save" : {
 
     },
-    "settings" : {
-
-    },
     "Settings" : {
 
     },
     "Tags" : {
+
+    },
+    "TunnelAddView" : {
+
+    },
+    "TunnelListView" : {
+
+    },
+    "Tunnels" : {
+
+    },
+    "Updates" : {
 
     },
     "User:" : {

@@ -25,6 +25,8 @@ let tunnelsCollectionId = "tunnels"
 let queryLimit = 50
 
 class Appwrite: ObservableObject {
+    static let shared = Appwrite()
+    
     private var client: Client
     
     var account: Account
@@ -47,6 +49,16 @@ class Appwrite: ObservableObject {
     
     //MARK: - Authentication
     
+    public func isLoggedIn() async -> Bool {
+        do {
+            user = try await account.get()
+            session = try await account.getSession(sessionId: "current")
+            return true
+        } catch {
+            return false
+        }
+    }
+    
     public func createEmailAccount(_ email: String, _ password: String) async throws {
         user = try await account.create(
             userId: ID.unique(),
@@ -55,10 +67,8 @@ class Appwrite: ObservableObject {
         )
     }
     
-    public func createEmailSession(_ email: String, _ password: String) async throws -> Session? {
+    public func createEmailSession(_ email: String, _ password: String) async throws {
         session = try await account.createEmailPasswordSession(email: email, password: password)
-            
-        return session
     }
     
     public func createOAuth2Session(_ provider: OAuthProvider) async throws {
@@ -69,6 +79,7 @@ class Appwrite: ObservableObject {
     
     public func createAnonymousSession() async throws {
         session = try await account.createAnonymousSession()
+        user = try await account.get()
     }
     
     public func getAccount() async throws -> User<[String: AnyCodable]>? {
