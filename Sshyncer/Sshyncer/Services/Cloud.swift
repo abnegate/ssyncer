@@ -10,22 +10,20 @@ import AppwriteEnums
 import JSONCodable
 import SwiftUI
 
-#if !DEBUG
+#if DEBUG
 let projectId = "ssyncer"
 #else
 let projectId = "ssyncer"
-
 #endif
 
 let databaseId = "ssyncer"
 let hostsCollectionId = "hosts"
 let keysCollectionId = "keys"
 let tunnelsCollectionId = "tunnels"
-
 let queryLimit = 50
 
-class Appwrite: ObservableObject {
-    static let shared = Appwrite()
+class Cloud: ObservableObject {
+    static let shared = Cloud()
     
     private var client: Client
     
@@ -34,7 +32,8 @@ class Appwrite: ObservableObject {
     var functions: Functions
     var storage: Storage
     
-    @Published var user: User<[String: AnyCodable]>? = nil
+    @JSONAppStorage(key: "user") var user: User<Prefs>?
+    
     @Published var session: Session? = nil
     
     init() {
@@ -49,10 +48,19 @@ class Appwrite: ObservableObject {
     
     //MARK: - Authentication
     
+    public func isLoggedInAnonymous() async -> Bool {
+        await isLoggedIn() && user?.email == nil
+    }
+    
     public func isLoggedIn() async -> Bool {
         do {
-            user = try await account.get()
-            session = try await account.getSession(sessionId: "current")
+            _ = try await getAccount()
+            _ = try await getSession()
+            
+            if user?.email == nil {
+                return false
+            }
+            
             return true
         } catch {
             return false
@@ -63,7 +71,8 @@ class Appwrite: ObservableObject {
         user = try await account.create(
             userId: ID.unique(),
             email: email,
-            password: password
+            password: password,
+            nestedType: Prefs.self
         )
     }
     
@@ -72,18 +81,19 @@ class Appwrite: ObservableObject {
     }
     
     public func createOAuth2Session(_ provider: OAuthProvider) async throws {
-        if (try await account.createOAuth2Session(provider: provider)) {
-            
+        if try await account.createOAuth2Session(provider: provider) {
+            _ = try await getAccount()
+            _ = try await getSession()
         }
     }
     
     public func createAnonymousSession() async throws {
         session = try await account.createAnonymousSession()
-        user = try await account.get()
+        user = try await account.get(nestedType: Prefs.self)
     }
     
-    public func getAccount() async throws -> User<[String: AnyCodable]>? {
-        user = try await account.get()
+    public func getAccount() async throws -> User<Prefs>? {
+        user = try await account.get(nestedType: Prefs.self)
         
         return user
     }
@@ -135,7 +145,7 @@ class Appwrite: ObservableObject {
             databaseId: databaseId,
             collectionId: hostsCollectionId,
             documentId: host.id,
-            data: host,
+            data: host.data,
             nestedType: Host.self
         )
     }

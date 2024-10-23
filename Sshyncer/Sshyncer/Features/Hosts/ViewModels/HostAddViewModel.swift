@@ -11,7 +11,7 @@ import Appwrite
 
 
 class HostAddViewModel: ViewModel {
-    private var appwrite = Appwrite.shared
+    private var appwrite = Cloud.shared
     
     @Published var hostname: String = ""
     @Published var port: Int = 22

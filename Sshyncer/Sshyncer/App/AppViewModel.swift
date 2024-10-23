@@ -8,10 +8,11 @@
 import SwiftUI
 
 class AppViewModel : ViewModel {
-    @Published var appwrite = Appwrite.shared
+    @Published var appwrite = Cloud.shared
     @Published var hostsNavigationPath = NavigationPath()
     @Published var keysNavigationPath = NavigationPath()
     @Published var tunnelsNavigationPath = NavigationPath()
+    @Published var settingsNavigationPath = NavigationPath()
     
     override init() {
         super.init()
