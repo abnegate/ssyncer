@@ -7,10 +7,11 @@
 
 import SwiftUI
 
+#if os(macOS)
 struct SettingsView: View {
     @StateObject var viewModel = SettingsViewModel()
     
-    @State private var selectedTab: String = "General" // Initial selected tab
+    @State private var selectedTab: String = "Account"
     
     var body: some View {
         VStack {
@@ -37,6 +38,38 @@ struct SettingsView: View {
         }
     }
 }
+#else
+struct SettingsView: View {
+    @StateObject var viewModel = SettingsViewModel()
+    
+    @State private var selectedTab: String = "Account"
+    
+    var body: some View {
+        ScrollView {
+            VStack {
+                Picker("", selection: $selectedTab) {
+                    Label("Account", systemImage: "person.crop.circle")
+                        .tag("Account")
+                    Label("Integrations", systemImage: "puzzlepiece.extension.fill")
+                        .tag("Integrations")
+                    Label("Updates", systemImage: "arrow.clockwise")
+                        .tag("Updates")
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                
+                if selectedTab == "Account" {
+                    AccountSettingsView()
+                } else if selectedTab == "Integrations" {
+                    IntegrationsSettingsView()
+                } else if selectedTab == "Updates" {
+                    UpdateSettingsView()
+                }
+            }
+            .padding()
+        }
+    }
+}
+#endif
 
 #Preview {
     SettingsView()

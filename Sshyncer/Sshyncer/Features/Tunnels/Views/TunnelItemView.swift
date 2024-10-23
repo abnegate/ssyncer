@@ -18,7 +18,7 @@ struct TunnelItemView: View {
                         Text(type.rawValue)
                     }
                 }
-                .pickerStyle(.radioGroup)
+                .pickerStyle(.automatic)
                 
                 TextField("Port:", value: $tunnel.port, formatter: NumberFormatter())
                     .textFieldStyle(RoundedBorderTextFieldStyle())

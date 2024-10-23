@@ -22,6 +22,12 @@
     "Destination Port:" : {
 
     },
+    "Disabled" : {
+
+    },
+    "Enabled" : {
+
+    },
     "Enter hostname or IP" : {
 
     },
@@ -73,6 +79,12 @@
       }
     },
     "Keys" : {
+
+    },
+    "Log out" : {
+
+    },
+    "Multi-Factor Authentication:" : {
 
     },
     "New hosts are synchronized to all devices." : {
