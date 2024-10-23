@@ -14,9 +14,11 @@ struct App: SwiftUI.App {
             ContentView()
         }
         
+        #if os(macOS)
         Settings {
             SettingsView()
         }
+        #endif
     }
 }
 
