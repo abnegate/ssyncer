@@ -137,13 +137,16 @@ struct SshyncerNavigationView: View {
 struct SshyncerNavigationView: View {
     @ObservedObject var viewModel: AppViewModel
     
+    @State var selectedTab: Screen = .hosts
+    
     var body: some View {
-        TabView(selection: $viewModel.selectedTab) {
+        TabView(selection: $selectedTab) {
             NavigationStack(path: $viewModel.hostsNavigationPath) {
-                HostsView()
+                HostListView()
+                    .navigationTitle("Hosts")
                     .toolbar {
                         ToolbarItem(placement: .navigationBarTrailing) {
-                            NavigationLink(destination: AddHostView()) {
+                            NavigationLink(destination: HostAddView()) {
                                 Image(systemName: "plus")
                             }
                         }
@@ -155,7 +158,8 @@ struct SshyncerNavigationView: View {
             .tag(Screen.hosts.rawValue)
             
             NavigationStack(path: $viewModel.keysNavigationPath) {
-                KeysView()
+                KeyListView()
+                    .navigationTitle("Keys")
                     .toolbar {
                         ToolbarItem(placement: .navigationBarTrailing) {
                             NavigationLink(destination: AddKeyView()) {
@@ -169,8 +173,25 @@ struct SshyncerNavigationView: View {
             }
             .tag(Screen.keys.rawValue)
             
+            NavigationStack(path: $viewModel.tunnelsNavigationPath) {
+                TunnelListView()
+                    .navigationTitle("Tunnels")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            NavigationLink(destination: TunnelAddView()) {
+                                Image(systemName: "plus")
+                            }
+                        }
+                    }
+            }
+            .tabItem {
+                Label("Tunnels", systemImage: "tram.fill.tunnel")
+            }
+            .tag(Screen.settings.rawValue)
+            
             NavigationStack(path: $viewModel.settingsNavigationPath) {
                 SettingsView()
+                    .navigationTitle("Settings")
             }
             .tabItem {
                 Label("Settings", systemImage: "gear")
@@ -191,6 +212,8 @@ extension SshyncerNavigationView {
             return viewModel.keysNavigationPath
         case .tunnels:
             return viewModel.tunnelsNavigationPath
+        case .settings:
+            return viewModel.settingsNavigationPath
         }
     }
     
@@ -208,6 +231,11 @@ extension SshyncerNavigationView {
         case .tunnels:
             if !viewModel.tunnelsNavigationPath.isEmpty {
                 viewModel.tunnelsNavigationPath.removeLast()
+            }
+            
+        case .settings:
+            if !viewModel.settingsNavigationPath.isEmpty {
+                viewModel.settingsNavigationPath.removeLast()
             }
         }
     }
