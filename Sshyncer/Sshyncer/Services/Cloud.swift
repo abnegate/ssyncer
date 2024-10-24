@@ -32,9 +32,23 @@ class Cloud: ObservableObject {
     var functions: Functions
     var storage: Storage
     
-    @JSONAppStorage(key: "user") var user: User<Prefs>?
+    @JSONAppStorage(key: "user")
+    private var persistedUser: User<Prefs>? {
+        didSet {
+            user = persistedUser
+        }
+    }
     
-    @Published var session: Session? = nil
+    @JSONAppStorage(key: "session")
+    private var persistedSession: Session? {
+        didSet {
+            session = persistedSession
+        }
+    }
+    
+    @Published var user: User<Prefs>?
+    
+    @Published var session: Session?
     
     init() {
         client = Client()
@@ -53,6 +67,10 @@ class Cloud: ObservableObject {
     }
     
     public func isLoggedIn() async -> Bool {
+        if user != nil {
+            return true
+        }
+
         do {
             _ = try await getAccount()
             _ = try await getSession()
@@ -93,12 +111,20 @@ class Cloud: ObservableObject {
     }
     
     public func getAccount() async throws -> User<Prefs>? {
+        if let user = user {
+            return user
+        }
+        
         user = try await account.get(nestedType: Prefs.self)
         
         return user
     }
     
     public func getSession() async throws -> Session? {
+        if let session = session {
+            return session
+        }
+        
         session = try await account.getSession(sessionId: "current")
         
         return session

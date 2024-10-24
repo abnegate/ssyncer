@@ -18,7 +18,9 @@ class AppViewModel : ViewModel {
         super.init()
         
         Task {
-            if !(await appwrite.isLoggedIn()) {
+            let loggedIn = await appwrite.isLoggedIn()
+            
+            if !loggedIn {
                 try? await appwrite.createAnonymousSession()
             }
         }
