@@ -127,6 +127,10 @@ struct SshyncerNavigationView: View {
                                 TunnelAddView()
                             }
                     }
+                    
+                case .settings:
+                    // TODO: Remove dummy view
+                    Text("")
                 }
             }
         }

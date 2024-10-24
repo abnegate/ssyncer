@@ -43,10 +43,17 @@ struct HostItemView: View {
                 .fill(viewModel.backgroundColor(for: host))
                 .shadow(color: viewModel.shadow(for: host), radius: 1, x: 0, y: 1)
         )
+        #if os(macOS)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color(.separatorColor), lineWidth: 1)
+        )
+        #else
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color(.separator), lineWidth: 1)
         )
+        #endif
         .onHover { hovering in
             viewModel.setHoveredHost(hovering ? host : nil)
         }
