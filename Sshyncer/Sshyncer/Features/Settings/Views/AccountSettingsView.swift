@@ -41,7 +41,7 @@ struct AccountSettingsView: View {
                     Spacer()
                 
                     Button(action: {
-                        viewModel.logOut()
+                        Task { await viewModel.logOut() }
                     }) {
                         Text("Log out")
                             .fontWeight(.bold)
@@ -66,7 +66,7 @@ struct AccountSettingsView: View {
                     // Sign in buttons
                     VStack(spacing: 16) {
                         signInButton("Sign in with Apple", icon: "applelogo", action: viewModel.logInWithApple)
-                        signInButton("Sign in with GitHub", icon: "logo.github", action: viewModel.logInWithGitHub)
+                        signInButton("Sign in with GitHub", icon: "github", action: viewModel.logInWithGitHub)
                         signInButton("Sign in with Google", icon: "globe", action: viewModel.logInWithGoogle)
                     }
                     .padding()
@@ -77,19 +77,17 @@ struct AccountSettingsView: View {
         }
     }
     
-    // Profile Image View based on login state
     @ViewBuilder
     private func profileImageView() -> some View {
         if viewModel.isLoggedIn, let url = viewModel.profileImageUrl {
-            // Fetch and display actual image
-            AsyncImage(url: url) { image in
-                image.resizable()
+            AsyncImage(url: URL(string: url)) { image in
+                image
+                    .resizable()
                     .aspectRatio(contentMode: .fill)
             } placeholder: {
                 ProgressView()
             }
         } else {
-            // Placeholder image
             Image(systemName: "person.crop.circle.fill")
                 .resizable()
                 .aspectRatio(contentMode: .fill)
@@ -97,9 +95,8 @@ struct AccountSettingsView: View {
         }
     }
     
-    // Sign in button factory
-    private func signInButton(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+    private func signInButton(_ title: String, icon: String, action: @escaping () async -> Void) -> some View {
+        Button(action: { Task { await action() } }) {
             HStack {
                 Image(systemName: icon)
                 Text(title)
@@ -107,9 +104,7 @@ struct AccountSettingsView: View {
             }
             .padding()
             .frame(maxWidth: .infinity)
-            .background(Color.white)
             .cornerRadius(10)
-            .shadow(radius: 5)
         }
     }
 }
