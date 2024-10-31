@@ -8,25 +8,56 @@
 import SwiftUI
 
 class AccountSettingsViewModel: ViewModel {
-    @Published var isLoggedIn: Bool = false
-    @Published var isMFAEnabled: Bool = false
-    @Published var profileImageUrl: URL? = nil
-    @Published var accountName: String = "John Doe"
-    @Published var accountEmail: String = "johndoe@example.com"
+    private var appwrite = Cloud.shared
+    
+    @Published var isLoggedIn: Bool
+    @Published var isMFAEnabled: Bool
+    @Published var profileImageUrl: String?
+    @Published var accountName: String
+    @Published var accountEmail: String
     
     override init() {
+        isLoggedIn = appwrite.user?.email.isEmpty == false
+        isMFAEnabled = appwrite.user?.mfa ?? false
+        profileImageUrl = appwrite.user?.prefs.data.avatarUrl
+        accountName = appwrite.user?.name ?? "John Doe"
+        accountEmail = appwrite.user?.email ?? "john@doe.com"
+        
         super.init()
     }
     
-    func logInWithApple() {
+    func logInWithApple() async {
+        do {
+            if try await appwrite.createOAuth2Session(.apple) {
+                print("Logged in")
+            } else {
+                self.error = "Failed to login with Apple"
+            }
+        } catch {
+            print(error.localizedDescription)
+        }
     }
     
-    func logInWithGitHub() {
+    func logInWithGitHub() async {
+        do {
+            if try await appwrite.createOAuth2Session(.github) {
+                print("Logged in")
+            } else {
+                self.error = "Failed to login with Apple"
+            }
+        } catch {
+            print(error.localizedDescription)
+        }
     }
     
     func logInWithGoogle() {
     }
     
-    func logOut() {
+    func logOut() async {
+        do {
+            _ = try await appwrite.deleteSession()
+        } catch {
+            self.error = error.localizedDescription
+        }
     }
 }
