@@ -9,6 +9,7 @@ import Appwrite
 import AppwriteEnums
 import JSONCodable
 import SwiftUI
+import Combine
 
 #if DEBUG
 let projectId = "ssyncer"
@@ -32,23 +33,13 @@ class Cloud: ObservableObject {
     var functions: Functions
     var storage: Storage
     
-    @JSONAppStorage(key: "user")
-    private var persistedUser: User<Prefs>? {
-        didSet {
-            user = persistedUser
-        }
-    }
-    
-    @JSONAppStorage(key: "session")
-    private var persistedSession: Session? {
-        didSet {
-            session = persistedSession
-        }
-    }
+    @JSONAppStorage(key: "user") private var persistedUser: User<Prefs>?
+    @JSONAppStorage(key: "session") private var persistedSession: Session?
     
     @Published var user: User<Prefs>?
-    
     @Published var session: Session?
+    
+    private var cancellables = Set<AnyCancellable>()
     
     init() {
         client = Client()
@@ -58,12 +49,27 @@ class Cloud: ObservableObject {
         databases = Databases(client)
         functions = Functions(client)
         storage = Storage(client)
+        
+        self.user = persistedUser
+        self.session = persistedSession
+        
+        $user
+            .sink { [weak self] newUser in
+                self?.persistedUser = newUser
+            }
+            .store(in: &cancellables)
+        
+        $session
+            .sink { [weak self] newSession in
+                self?.persistedSession = newSession
+            }
+            .store(in: &cancellables)
     }
     
     //MARK: - Authentication
     
     public func isLoggedInAnonymous() async -> Bool {
-        await isLoggedIn() && user?.email == nil
+        await isLoggedIn() && user?.email.isEmpty == true
     }
     
     public func isLoggedIn() async -> Bool {
@@ -74,10 +80,6 @@ class Cloud: ObservableObject {
         do {
             _ = try await getAccount()
             _ = try await getSession()
-            
-            if user?.email == nil {
-                return false
-            }
             
             return true
         } catch {
@@ -98,11 +100,15 @@ class Cloud: ObservableObject {
         session = try await account.createEmailPasswordSession(email: email, password: password)
     }
     
-    public func createOAuth2Session(_ provider: OAuthProvider) async throws {
+    public func createOAuth2Session(_ provider: OAuthProvider) async throws -> Bool {
         if try await account.createOAuth2Session(provider: provider) {
             _ = try await getAccount()
             _ = try await getSession()
+            
+            return true
         }
+        
+        return false
     }
     
     public func createAnonymousSession() async throws {
@@ -128,6 +134,10 @@ class Cloud: ObservableObject {
         session = try await account.getSession(sessionId: "current")
         
         return session
+    }
+    
+    public func deleteSession() async throws {
+        _ = try await account.deleteSession(sessionId: "current")
     }
     
     //MARK: - Hosts
