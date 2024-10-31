@@ -102,8 +102,8 @@ class Cloud: ObservableObject {
     
     public func createOAuth2Session(_ provider: OAuthProvider) async throws -> Bool {
         if try await account.createOAuth2Session(provider: provider) {
-            _ = try await getAccount()
-            _ = try await getSession()
+            _ = try await getAccount(fresh: true)
+            _ = try await getSession(fresh: true)
             
             return true
         }
@@ -116,8 +116,8 @@ class Cloud: ObservableObject {
         user = try await account.get(nestedType: Prefs.self)
     }
     
-    public func getAccount() async throws -> User<Prefs>? {
-        if let user = user {
+    public func getAccount(fresh: Bool = false) async throws -> User<Prefs>? {
+        if !fresh, let user = user {
             return user
         }
         
@@ -126,8 +126,8 @@ class Cloud: ObservableObject {
         return user
     }
     
-    public func getSession() async throws -> Session? {
-        if let session = session {
+    public func getSession(fresh: Bool = false) async throws -> Session? {
+        if !fresh, let session = session {
             return session
         }
         
