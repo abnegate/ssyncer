@@ -6,5 +6,5 @@
 //
 
 class Prefs: Codable {
-    let avatarUrl: String
+    let avatarUrl: String?
 }
