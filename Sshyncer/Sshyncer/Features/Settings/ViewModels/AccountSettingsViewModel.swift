@@ -16,6 +16,17 @@ class AccountSettingsViewModel: ViewModel {
     @Published var accountName: String
     @Published var accountEmail: String
     
+    let mfaTypes = [
+        "Email",
+        "Authenticator"
+    ]
+    
+    let accountTypes = [
+        "Apple",
+        "GitHub",
+        "Google"
+    ]
+    
     override init() {
         isLoggedIn = appwrite.user?.email.isEmpty == false
         isMFAEnabled = appwrite.user?.mfa ?? false
@@ -59,5 +70,9 @@ class AccountSettingsViewModel: ViewModel {
         } catch {
             self.error = error.localizedDescription
         }
+    }
+    
+    func setMFAEnabled(_ enabled: Bool, type: String) async {
+        
     }
 }
