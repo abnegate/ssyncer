@@ -10,6 +10,7 @@ import AppwriteEnums
 import JSONCodable
 import SwiftUI
 import Combine
+import NIO
 
 #if DEBUG
 let projectId = "ssyncer"
@@ -32,6 +33,7 @@ class Cloud: ObservableObject {
     var databases: Databases
     var functions: Functions
     var storage: Storage
+    var avatars: Avatars
     
     @JSONAppStorage(key: "user") private var persistedUser: User<Prefs>?
     @JSONAppStorage(key: "session") private var persistedSession: Session?
@@ -49,6 +51,7 @@ class Cloud: ObservableObject {
         databases = Databases(client)
         functions = Functions(client)
         storage = Storage(client)
+        avatars = Avatars(client)
         
         self.user = persistedUser
         self.session = persistedSession
@@ -121,7 +124,15 @@ class Cloud: ObservableObject {
             return user
         }
         
-        user = try await account.get(nestedType: Prefs.self)
+        do {
+            user = try await account.get(nestedType: Prefs.self)
+        } catch let error as AppwriteError {
+            if error.type == "user_more_factors_required" {
+                // TODO: MFA flow
+            } else {
+                throw error
+            }
+        }
         
         return user
     }
@@ -138,6 +149,72 @@ class Cloud: ObservableObject {
     
     public func deleteSession() async throws {
         _ = try await account.deleteSession(sessionId: "current")
+        session = nil
+        user = nil
+    }
+    
+    //MARK: - Verification
+    
+    public func createEmailVerification() async throws {
+        _ = try await account.createVerification(url: "appwrite-callback-ssyncer://verify-email")
+    }
+    
+    public func verifyEmail(userId: String, secret: String) async throws {
+        _ = try await account.updateVerification(
+            userId: userId,
+            secret: secret
+        )
+    }
+    
+    //MARK: - MFA
+    
+    public func getRecoveryCodes() async throws -> [String] {
+        let codes = try await account.createMfaRecoveryCodes()
+        
+        return codes.recoveryCodes
+    }
+    
+    public func enableMFA() async throws {
+        user = try await account.updateMFA(
+            mfa: true,
+            nestedType: Prefs.self
+        )
+    }
+    
+    public func disableMFA() async throws {
+        user = try await account.updateMFA(
+            mfa: false,
+            nestedType: Prefs.self
+        )
+    }
+    
+    public func listFactors() async throws -> MfaFactors {
+        return try await account.listMfaFactors()
+    }
+    
+    public func createMfaChallenge(factor: AuthenticationFactor) async throws -> MfaChallenge {
+        return try await account.createMfaChallenge(factor: factor)
+    }
+    
+    public func updateMfaChallenge(id: String, otp: String) async throws {
+        session = try await account.updateMfaChallenge(challengeId: id, otp: otp) as? Session
+    }
+    
+    public func createMfaAuthenticator() async throws -> MfaType {
+        return try await account.createMfaAuthenticator(type: .totp)
+    }
+    
+    public func verifyAuthenticator(otp: String) async throws {
+        _ = try await account.updateMfaAuthenticator(
+            type: .totp,
+            otp: otp
+        )
+    }
+    
+    // MARK: - Avatars
+    
+    public func createQRCode(text: String, size: Int = 512) async throws -> ByteBuffer {
+        return try await avatars.getQR(text: text, size: size)
     }
     
     //MARK: - Hosts

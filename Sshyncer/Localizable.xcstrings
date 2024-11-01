@@ -16,16 +16,13 @@
     "Cancel" : {
 
     },
+    "Connected Accounts" : {
+
+    },
     "Destination Host:" : {
 
     },
     "Destination Port:" : {
-
-    },
-    "Disabled" : {
-
-    },
-    "Enabled" : {
 
     },
     "Enter hostname or IP" : {
@@ -84,7 +81,7 @@
     "Log out" : {
 
     },
-    "Multi-Factor Authentication:" : {
+    "Multi-Factor Authentication" : {
 
     },
     "New hosts are synchronized to all devices." : {
